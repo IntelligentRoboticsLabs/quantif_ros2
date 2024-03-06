@@ -1,0 +1,18 @@
+geometry_msgs/PoseStamped pose
+string behavior_tree
+
+int64 seq_req
+---
+uint16 NONE=0
+uint16 error_code
+
+int64 seq_res
+---
+
+geometry_msgs/PoseStamped current_pose
+builtin_interfaces/Duration navigation_time
+builtin_interfaces/Duration estimated_time_remaining
+int16 number_of_recoveries
+float32 distance_remaining
+
+int64 seq_fed

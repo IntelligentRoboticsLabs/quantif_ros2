@@ -65,7 +65,7 @@ QR2Node::init()
   RCLCPP_INFO(get_logger(), "\tSubscribers: [%zu]", subscribers.size());
 
   for (const auto & subscriber : subscribers) {
-    auto new_subscriber = subscriber_factory_->create_subscriber(subscriber, type_ == "Consumer");
+    auto new_subscriber = subscriber_factory_->create_subscriber(subscriber);
     subscribers_.push_back(new_subscriber);
   }
 
@@ -90,8 +90,8 @@ QR2Node::control_cycle()
     for (auto & publisher : publishers_) {
       publisher->produce_and_publish();
     }
-    for (auto & subscriber : subscribers) {
-      subscriber->produce_and_publish();
+    for (auto & subscriber : subscribers_) {
+      // subscriber->produce_and_publish();
     }
   }
 

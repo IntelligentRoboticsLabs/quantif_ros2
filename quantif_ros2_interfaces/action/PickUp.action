@@ -1,0 +1,30 @@
+string target_name
+string group_name
+string end_effector
+Grasp[] possible_grasps
+string support_surface_name
+bool allow_gripper_support_collision
+string[] attached_object_touch_links
+bool minimize_object_distance
+Constraints path_constraints
+string planner_id
+string[] allowed_touch_objects
+float64 allowed_planning_time
+PlanningOptions planning_options
+
+int64 seq_req
+---
+
+MoveItErrorCodes error_code
+RobotState trajectory_start
+RobotTrajectory[] trajectory_stages
+string[] trajectory_descriptions
+Grasp grasp
+float64 planning_time
+
+int64 seq_res
+---
+
+string state
+
+int64 seq_fed

@@ -44,13 +44,11 @@ public:
   RCLCPP_SMART_PTR_DEFINITIONS(QR2Subscriber)
   
   QR2Subscriber(
-    rclcpp::Node::SharedPtr node, const std::string & topic,
-    rclcpp::QoS qos, bool clear_msg = false)
+    rclcpp::Node::SharedPtr node, const std::string & topic, rclcpp::QoS qos)
   {
     subscriber_ = node->create_subscription<T>(topic, qos,
       [&] (typename T::UniquePtr msg) {
         last_msg_ = std::move(msg);
-        if (clear_msg) {msg = nullptr;}
       });
   }
 
@@ -59,6 +57,9 @@ public:
     return std::move(last_msg_);
   }
 
+  void clear_msgs() {
+    last_msg_ = nullptr;
+  }
 
 protected:
   typename rclcpp::Subscription<T>::SharedPtr subscriber_;
@@ -73,8 +74,7 @@ public:
     node_ = node;
   }
 
-  std::shared_ptr<QR2SubscriberBase> create_subscriber(
-    const std::string & id, bool clear_msg = false)
+  std::shared_ptr<QR2SubscriberBase> create_subscriber(const std::string & id)
   {
     std::string topic;
     std::string type;
@@ -106,19 +106,19 @@ public:
     std::shared_ptr<QR2SubscriberBase> ret;
     if (type == "Vector3") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::Vector3>>(
-        node_, topic, qos, clear_msg);
+        node_, topic, qos);
     } else if (type == "Twist") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::Twist>>(
-        node_, topic, qos, clear_msg);
+        node_, topic, qos);
     } else if (type == "LaserScan") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::LaserScan>>(
-        node_, topic, qos, clear_msg);
+        node_, topic, qos);
     } else if (type == "Image") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::Image>>(
-        node_, topic, qos, clear_msg);
+        node_, topic, qos);
     } else if (type == "PointCloud2") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::PointCloud2>>(
-        node_, topic, qos, clear_msg);
+        node_, topic, qos);
     } else {
       RCLCPP_ERROR(
         node_->get_logger(), "Unsupported type (%s) for topic %s", type.c_str(), id.c_str());
