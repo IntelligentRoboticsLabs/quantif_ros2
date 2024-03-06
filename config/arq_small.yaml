@@ -1,0 +1,83 @@
+camera_1:
+  ros__parameters:
+    type: "Producer"
+    rate: 30.0
+    processing_time: 0.0001  # 0.1ms
+    publishers: ["out"]
+    out:
+      topic: "camera_1/out"
+      type: "Image"
+      qos: "sensor.reliable"
+
+laser_1:
+  ros__parameters:
+    type: "Producer"
+    rate: 15.0
+    processing_time: 0.0001 # 0.1ms
+    publishers: ["out"]
+    out:
+      topic: "laser_1/out"
+      type: "LaserScan"
+      qos: "sensor.reliable"
+
+ball_detector:
+  ros__parameters:
+    type: "Processor"
+    rate: 30.0
+    processing_time: 0.002
+    publishers: ["out"]
+    subscribers: ["in"]
+    in:
+      topic: "camera_1/out"
+      type: "Image"
+      qos: "sensor"
+    out:
+      topic: "ball_detector/out"
+      type: "Vector3"
+      qos: "reliable"
+
+obstacle_detector:
+  ros__parameters:
+    type: "Processor"
+    rate: 100.0
+    processing_time: 0.0001
+    publishers: ["out"]
+    subscribers: ["in"]
+    in:
+      topic: "laser_1/out"
+      type: "LaserScan"
+      qos: "sensor"
+    out:
+      topic: "obstacle_detector/out"
+      type: "Vector3"
+      qos: "reliable"
+
+controller:
+  ros__parameters:
+    type: "Processor"
+    rate: 100.0
+    processing_time: 0.0001
+    publishers: ["out"]
+    subscribers: ["in1", "in2"]
+    in1:
+      topic: "ball_detector/out"
+      type: "Vector3"
+      qos: "reliable"
+    in2:
+      topic: "obstacle_detector/out"
+      type: "Vector3"
+      qos: "reliable"
+    out:
+      topic: "mobile_base/out"
+      type: "Twist"
+      qos: "reliable"
+
+mobile_base:
+  ros__parameters:
+    type: "Consumer"
+    processing_time: 0.0001
+    subscribers: ["in"]
+    in:
+      topic: "mobile_base/out"
+      type: "Twist"
+      qos: "reliable"
