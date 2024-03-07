@@ -1,0 +1,59 @@
+camera_1:
+  ros__parameters:
+    type: "Producer"
+    rate: 30.0
+    processing_time: 0.0001  # 0.1ms
+    publishers: ["out"]
+    out:
+      topic: "camera_1/out"
+      type: "Image"
+      qos: "sensor.reliable"
+
+laser_1:
+  ros__parameters:
+    type: "Producer"
+    rate: 15.0
+    processing_time: 0.0001 # 0.1ms
+    publishers: ["out"]
+    out:
+      topic: "laser_1/out"
+      type: "LaserScan"
+      qos: "sensor.reliable"
+
+filter_1:
+  ros__parameters:
+    type: "Filter"
+    rate: 60.0
+    processing_time: 0.002
+    publishers: ["out1", "out2"]
+    subscribers: ["in1", "in2"]
+    in1:
+      topic: "camera_1/out"
+      type: "Image"
+      qos: "sensor"
+    in2:
+      topic: "laser_1/out"
+      type: "LaserScan"
+      qos: "sensor"      
+    out1:
+      topic: "filter/out1"
+      type: "Image"
+      qos: "reliable"
+    out2:
+      topic: "filter/out2"
+      type: "LaserScan"
+      qos: "reliable"
+
+consumer:
+  ros__parameters:
+    type: "Consumer"
+    processing_time: 0.0001
+    subscribers: ["in1", "in2"]
+    in1:
+      topic: "filter/out1"
+      type: "Image"
+      qos: "reliable"
+    in2:
+      topic: "filter/out2"
+      type: "LaserScan"
+      qos: "reliable"

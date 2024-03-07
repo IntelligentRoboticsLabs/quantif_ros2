@@ -49,7 +49,7 @@ public:
     rclcpp::QoS qos, const std::string & type)
   {
     type_ = type;
-
+    node_ = node;
     subscriber_ = node->create_subscription<T>(
       topic, qos,
       [&](typename T::UniquePtr msg) {
@@ -76,6 +76,7 @@ protected:
   typename rclcpp::Subscription<T>::SharedPtr subscriber_;
   typename T::UniquePtr last_msg_;
   std::string type_;
+  rclcpp::Node::SharedPtr node_;
 };
 
 class QR2SubscriberFactory

@@ -37,12 +37,12 @@ QR2Node::init()
   declare_parameter("type", type_);
 
   get_parameter("type", type_);
-  if (type_ == "Processor" || type_ == "Producer") {
+  if (type_ == "Processor" || type_ == "Producer" || type_ == "Filter") {
     declare_parameter("rate", rate_);
   }
 
   declare_parameter("processing_time", processing_time_);
-  if (type_ == "Processor" || type_ == "Producer") {
+  if (type_ == "Processor" || type_ == "Producer" || type_ == "Filter") {
     get_parameter("rate", rate_);
     timer_ = create_wall_timer(
       std::chrono::duration<double>(1.0 / rate_),
@@ -151,9 +151,10 @@ QR2Node::control_cycle()
   }
 
   if (type_ == "Consumer") {
-    for (auto & subscriber : subscribers_) {
-      subscriber->clear_msgs();
-    }
+    // for (auto & subscriber : subscribers_) {
+    //   No need to release, as every new message removesthe last one
+    //   subscriber->clear_msgs();
+    // }
   }
 
 

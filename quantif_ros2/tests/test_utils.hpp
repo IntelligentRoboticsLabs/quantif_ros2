@@ -23,6 +23,30 @@
 namespace quantif_ros2
 {
 
+class QR2NodeTest : public quantif_ros2::QR2Node
+{
+public:
+  RCLCPP_SMART_PTR_DEFINITIONS(QR2NodeTest)
+
+  QR2NodeTest(
+    const std::string & node_name,
+    const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
+  : QR2Node(node_name, options)
+  {
+  }
+
+  std::vector<std::shared_ptr<QR2PublisherBase>> & get_publishers()
+  {
+    return publishers_;
+  }
+
+  std::vector<std::shared_ptr<QR2SubscriberBase>> & get_subscribers()
+  {
+    return subscribers_;
+  }
+};
+
+
 std::tuple<int, char **>
 extend_args(int argc, char ** argv, std::vector<std::string> args)
 {
