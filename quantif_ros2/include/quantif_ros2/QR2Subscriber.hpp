@@ -57,7 +57,7 @@ public:
       });
   }
 
-  void get_last_msg(typename T::UniquePtr msg)
+  void get_last_msg(typename T::UniquePtr & msg)
   {
     msg = std::move(last_msg_);
   }

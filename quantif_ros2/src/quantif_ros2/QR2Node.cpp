@@ -87,9 +87,9 @@ void get_and_publish(
   std::shared_ptr<QR2SubscriberBase> sub, const std::string & type,
   std::vector<std::shared_ptr<QR2PublisherBase>> & publishers)
 {
-  typename T::UniquePtr msg;
+  auto msg = std::make_unique<T>();
   auto typed_sub = std::dynamic_pointer_cast<QR2Subscriber<T>>(sub);
-  typed_sub->get_last_msg(std::move(msg));
+  typed_sub->get_last_msg(msg);
 
   if (msg != nullptr) {
     for (auto & publisher : publishers) {

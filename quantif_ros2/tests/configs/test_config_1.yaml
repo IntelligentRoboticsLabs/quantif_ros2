@@ -39,7 +39,7 @@ ball_detector:
 obstacle_detector:
   ros__parameters:
     type: "Processor"
-    rate: 100.0
+    rate: 30.0
     processing_time: 0.0001
     publishers: ["out"]
     subscribers: ["in"]
@@ -55,7 +55,7 @@ obstacle_detector:
 controller:
   ros__parameters:
     type: "Processor"
-    rate: 100.0
+    rate: 30.0
     processing_time: 0.0001
     publishers: ["out"]
     subscribers: ["in1", "in2"]

@@ -30,9 +30,34 @@
 
 using namespace std::chrono_literals;
 
+
+class QR2NodeTest : public quantif_ros2::QR2Node
+{
+public:
+  RCLCPP_SMART_PTR_DEFINITIONS(QR2NodeTest)
+
+  QR2NodeTest(
+    const std::string & node_name,
+    const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
+  : QR2Node(node_name, options)
+  {
+  }
+
+  std::vector<std::shared_ptr<quantif_ros2::QR2PublisherBase>> & get_publishers()
+  {
+    return publishers_;
+  }
+
+  std::vector<std::shared_ptr<quantif_ros2::QR2SubscriberBase>> & get_subscribers()
+  {
+    return subscribers_;
+  }
+};
+
+
 TEST(qr2_tests, producer_laser)
 {
-  auto producer_node = quantif_ros2::QR2Node::make_shared("laser_1");
+  auto producer_node = QR2NodeTest::make_shared("laser_1");
   producer_node->init();
 
   auto test_node = rclcpp::Node::make_shared("test_node");
@@ -58,7 +83,7 @@ TEST(qr2_tests, producer_laser)
 
 TEST(qr2_tests, producer_camera)
 {
-  auto producer_node = quantif_ros2::QR2Node::make_shared("camera_1");
+  auto producer_node = QR2NodeTest::make_shared("camera_1");
   producer_node->init();
 
   auto test_node = rclcpp::Node::make_shared("test_node");
@@ -82,6 +107,97 @@ TEST(qr2_tests, producer_camera)
   ASSERT_NEAR(received_msgs.back().seq, 90, 3);
 }
 
+TEST(qr2_tests, processor_ball_detector)
+{
+  auto processor_node = QR2NodeTest::make_shared("ball_detector");
+  auto producer_node = QR2NodeTest::make_shared("camera_1");
+  processor_node->init();
+  producer_node->init();
+
+  auto test_node = rclcpp::Node::make_shared("test_node");
+  std::list<quantif_ros2_interfaces::msg::Vector3> received_msgs;
+  auto subscriber = test_node->create_subscription<quantif_ros2_interfaces::msg::Vector3>(
+    "ball_detector/out", 100,
+    [&received_msgs](quantif_ros2_interfaces::msg::Vector3 msg) {
+      received_msgs.push_back(msg);
+    });
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(processor_node);
+  executor.add_node(producer_node);
+  executor.add_node(test_node);
+
+  auto proc_subs = processor_node->get_subscribers();
+  ASSERT_EQ(proc_subs.size(), 1u);
+  auto proc_sub = std::dynamic_pointer_cast<
+    quantif_ros2::QR2Subscriber<quantif_ros2_interfaces::msg::Image>>(proc_subs[0]);
+
+  std::list<quantif_ros2_interfaces::msg::Image> in_msgs;
+  int i = 0;
+  auto start = test_node->now();
+  while ((test_node->now() - start) < 3s) {
+    auto in_msg = std::make_unique<quantif_ros2_interfaces::msg::Image>();
+    proc_sub->get_last_msg(in_msg);
+
+    if (in_msg != nullptr) {
+      ASSERT_EQ(in_msg->seq, i++);
+      in_msgs.push_back(*in_msg);
+    }
+
+    executor.spin_some();
+  }
+
+  ASSERT_NEAR(in_msgs.size(), 90, 3);
+  ASSERT_NEAR(in_msgs.back().seq, 90, 3);
+  ASSERT_NEAR(received_msgs.size(), 90, 3);
+  ASSERT_NEAR(received_msgs.back().seq, 90, 3);
+}
+
+TEST(qr2_tests, obstacle_detector_detector)
+{
+  auto processor_node = QR2NodeTest::make_shared("obstacle_detector");
+  auto producer_node = QR2NodeTest::make_shared("laser_1");
+  processor_node->init();
+  producer_node->init();
+
+  auto test_node = rclcpp::Node::make_shared("test_node");
+  std::list<quantif_ros2_interfaces::msg::Vector3> received_msgs;
+  auto subscriber = test_node->create_subscription<quantif_ros2_interfaces::msg::Vector3>(
+    "obstacle_detector/out", 100,
+    [&received_msgs](quantif_ros2_interfaces::msg::Vector3 msg) {
+      received_msgs.push_back(msg);
+    });
+
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(processor_node);
+  executor.add_node(producer_node);
+  executor.add_node(test_node);
+
+  auto proc_subs = processor_node->get_subscribers();
+  ASSERT_EQ(proc_subs.size(), 1u);
+  auto proc_sub = std::dynamic_pointer_cast<
+    quantif_ros2::QR2Subscriber<quantif_ros2_interfaces::msg::LaserScan>>(proc_subs[0]);
+
+  std::list<quantif_ros2_interfaces::msg::LaserScan> in_msgs;
+  int i = 0;
+  auto start = test_node->now();
+  while ((test_node->now() - start) < 3s) {
+    auto in_msg = std::make_unique<quantif_ros2_interfaces::msg::LaserScan>();
+    proc_sub->get_last_msg(in_msg);
+
+    if (in_msg != nullptr) {
+      ASSERT_EQ(in_msg->seq, i++);
+      in_msgs.push_back(*in_msg);
+    }
+
+    executor.spin_some();
+  }
+
+  ASSERT_NEAR(in_msgs.size(), 45, 3);
+  ASSERT_NEAR(in_msgs.back().seq, 45, 3);
+  ASSERT_NEAR(received_msgs.size(), 90, 3);
+  ASSERT_NEAR(received_msgs.back().seq, 90, 3);
+}
 
 int main(int argc, char ** argv)
 {
