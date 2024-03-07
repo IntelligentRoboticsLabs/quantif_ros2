@@ -41,17 +41,21 @@ public:
 protected:
   void fill(quantif_ros2_interfaces::msg::Vector3 & msg)
   {
+    msg.header.stamp = node_->now();
     msg.seq = counter_++;
   }
 
   void fill(quantif_ros2_interfaces::msg::Twist & msg)
   {
+    msg.header.stamp = node_->now();
     msg.seq = counter_++;
   }
 
   void fill(quantif_ros2_interfaces::msg::LaserScan & msg)
   {
     msg.seq = counter_++;
+    msg.header.stamp = node_->now();
+
     msg.data.header.frame_id = "laser";
     msg.data.header.stamp = node_->now();
     msg.data.angle_increment = 0.01749303564429283;
@@ -63,12 +67,34 @@ protected:
 
   void fill(quantif_ros2_interfaces::msg::Image & msg)
   {
+    msg.header.stamp = node_->now();
     msg.seq = counter_++;
+
+    msg.data.header.frame_id = "camera";
+    msg.data.header.stamp = node_->now();
+    msg.data.height = 480;
+    msg.data.width = 640;
+    msg.data.encoding = "bgr8";
+    msg.data.is_bigendian = 0;
+    msg.data.step = 1920;
+    msg.data.data.resize(msg.data.height * msg.data.width * 3);
   }
 
   void fill(quantif_ros2_interfaces::msg::PointCloud2 & msg)
   {
+    msg.header.stamp = node_->now();
     msg.seq = counter_++;
+
+    msg.data.header.frame_id = "camera";
+    msg.data.header.stamp = node_->now();
+    msg.data.height = 1;
+    msg.data.width = 640 * 480;
+    msg.data.fields.resize(4);
+    msg.data.is_bigendian = false;
+    msg.data.point_step = 32;
+    msg.data.row_step = 640 * 480 * 32;
+    msg.data.data.resize(msg.data.row_step);
+    msg.data.is_dense = false;
   }
 
   long counter_ {0};
