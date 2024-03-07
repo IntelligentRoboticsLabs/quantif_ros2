@@ -14,6 +14,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(quantif_ros2_interfaces REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 find_package(OpenCV REQUIRED)
 
@@ -24,6 +25,7 @@ set(dependencies
   cv_bridge
   OpenCV
   quantif_ros2_interfaces
+  ament_index_cpp
 )
 
 include_directories(include)
@@ -45,7 +47,7 @@ install(TARGETS
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY config tests/configs DESTINATION share/${PROJECT_NAME})
 
 
 
@@ -54,6 +56,9 @@ if(BUILD_TESTING)
   set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  add_subdirectory(tests)
 endif()
 
 ament_package()

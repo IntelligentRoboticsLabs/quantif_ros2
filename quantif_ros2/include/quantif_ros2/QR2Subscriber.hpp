@@ -35,6 +35,7 @@ public:
   virtual ~QR2SubscriberBase() {}
 
   virtual void clear_msgs() = 0;
+  virtual std::string get_type() = 0;
 };
 
 template<class T>
@@ -42,28 +43,39 @@ class QR2Subscriber : public QR2SubscriberBase
 {
 public:
   RCLCPP_SMART_PTR_DEFINITIONS(QR2Subscriber)
-  
+
   QR2Subscriber(
-    rclcpp::Node::SharedPtr node, const std::string & topic, rclcpp::QoS qos)
+    rclcpp::Node::SharedPtr node, const std::string & topic,
+    rclcpp::QoS qos, const std::string & type)
   {
-    subscriber_ = node->create_subscription<T>(topic, qos,
-      [&] (typename T::UniquePtr msg) {
+    type_ = type;
+
+    subscriber_ = node->create_subscription<T>(
+      topic, qos,
+      [&](typename T::UniquePtr msg) {
         last_msg_ = std::move(msg);
       });
   }
 
-  typename T::UniquePtr get_last_msg()
+  void get_last_msg(typename T::UniquePtr msg)
   {
-    return std::move(last_msg_);
+    msg = std::move(last_msg_);
   }
 
-  void clear_msgs() {
+  void clear_msgs()
+  {
     last_msg_ = nullptr;
+  }
+
+  std::string get_type()
+  {
+    return type_;
   }
 
 protected:
   typename rclcpp::Subscription<T>::SharedPtr subscriber_;
   typename T::UniquePtr last_msg_;
+  std::string type_;
 };
 
 class QR2SubscriberFactory
@@ -106,19 +118,19 @@ public:
     std::shared_ptr<QR2SubscriberBase> ret;
     if (type == "Vector3") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::Vector3>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "Twist") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::Twist>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "LaserScan") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::LaserScan>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "Image") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::Image>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "PointCloud2") {
       ret = std::make_shared<QR2Subscriber<quantif_ros2_interfaces::msg::PointCloud2>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else {
       RCLCPP_ERROR(
         node_->get_logger(), "Unsupported type (%s) for topic %s", type.c_str(), id.c_str());

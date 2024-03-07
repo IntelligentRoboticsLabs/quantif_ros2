@@ -31,7 +31,7 @@ int main(int argc, char * argv[])
     "obstacle_detector",
     "controller",
     "mobile_base",
-   };
+  };
 
   for (const auto & id : node_ids) {
     auto node = quantif_ros2::QR2Node::make_shared(id);

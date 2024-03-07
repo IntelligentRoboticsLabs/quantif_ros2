@@ -30,7 +30,7 @@ class QR2Node : public rclcpp::Node
 {
 public:
   RCLCPP_SMART_PTR_DEFINITIONS(QR2Node)
-  
+
   QR2Node(
     const std::string & node_name,
     const rclcpp::NodeOptions & options = rclcpp::NodeOptions());

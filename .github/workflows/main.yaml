@@ -1,0 +1,32 @@
+name: main
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    container:
+      image: osrf/ros:rolling-desktop
+    strategy:
+      matrix:
+        os: [ubuntu-22.04]
+      fail-fast: false
+    steps:
+      - name: build and test
+        uses: ros-tooling/action-ros-ci@0.2.6
+        with:
+          package-name: quantif_ros2 quantif_ros2_interfaces
+          target-ros2-distro: rolling
+          vcs-repo-file-url: 
+          colcon-defaults: |
+            {
+              "test": {
+                "parallel-workers" : 1
+              }
+            }

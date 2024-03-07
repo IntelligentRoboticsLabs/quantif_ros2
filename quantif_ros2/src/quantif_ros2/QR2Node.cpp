@@ -82,6 +82,26 @@ QR2Node::init()
 }
 
 
+template<class T>
+void get_and_publish(
+  std::shared_ptr<QR2SubscriberBase> sub, const std::string & type,
+  std::vector<std::shared_ptr<QR2PublisherBase>> & publishers)
+{
+  typename T::UniquePtr msg;
+  auto typed_sub = std::dynamic_pointer_cast<QR2Subscriber<T>>(sub);
+  typed_sub->get_last_msg(std::move(msg));
+
+  if (msg != nullptr) {
+    for (auto & publisher : publishers) {
+      if (publisher->get_type() == type) {
+        auto typed_pub = std::dynamic_pointer_cast<QR2Publisher<T>>(publisher);
+        typed_pub->publish(std::move(msg));
+        break;
+      }
+    }
+  }
+}
+
 void
 QR2Node::control_cycle()
 {
@@ -90,12 +110,54 @@ QR2Node::control_cycle()
     for (auto & publisher : publishers_) {
       publisher->produce_and_publish();
     }
+  }
+
+  if (type_ == "Processor") {
+    for (auto & publisher : publishers_) {
+      publisher->produce_and_publish();
+    }
     for (auto & subscriber : subscribers_) {
-      // subscriber->produce_and_publish();
+      subscriber->clear_msgs();
     }
   }
 
-  while ((now() - start).seconds() < processing_time_) {};
+  if (type_ == "Filter") {
+    for (auto & subscriber : subscribers_) {
+      auto type_sub = subscriber->get_type();
+
+      if (type_sub == "Vector3") {
+        get_and_publish<quantif_ros2_interfaces::msg::Vector3>(
+          subscriber, type_sub, publishers_);
+      }
+      if (type_sub == "Twist") {
+        get_and_publish<quantif_ros2_interfaces::msg::Twist>(
+          subscriber, type_sub, publishers_);
+      }
+      if (type_sub == "LaserScan") {
+        get_and_publish<quantif_ros2_interfaces::msg::LaserScan>(
+          subscriber, type_sub, publishers_);
+      }
+      if (type_sub == "Image") {
+        get_and_publish<quantif_ros2_interfaces::msg::Image>(
+          subscriber, type_sub, publishers_);
+      }
+      if (type_sub == "PointCloud2") {
+        get_and_publish<quantif_ros2_interfaces::msg::PointCloud2>(
+          subscriber, type_sub, publishers_);
+      }
+
+      subscriber->clear_msgs();
+    }
+  }
+
+  if (type_ == "Consumer") {
+    for (auto & subscriber : subscribers_) {
+      subscriber->clear_msgs();
+    }
+  }
+
+
+  while ((now() - start).seconds() < processing_time_) {}
 }
 
 }  // namespace quantif_ros2

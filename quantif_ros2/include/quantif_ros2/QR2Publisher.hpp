@@ -36,6 +36,7 @@ public:
   virtual ~QR2PublisherBase() {}
 
   virtual void produce_and_publish() = 0;
+  virtual std::string get_type() = 0;
 
 protected:
   void fill(quantif_ros2_interfaces::msg::Vector3 & msg)
@@ -53,7 +54,7 @@ protected:
     msg.seq = counter_++;
     msg.data.header.frame_id = "laser";
     msg.data.header.stamp = node_->now();
-    msg.data.angle_increment = 0.01749303564429283; 
+    msg.data.angle_increment = 0.01749303564429283;
     msg.data.angle_min = -M_PI;
     msg.data.angle_max = M_PI;
     int size = (msg.data.angle_max - msg.data.angle_min) / msg.data.angle_increment;
@@ -79,9 +80,13 @@ class QR2Publisher : public QR2PublisherBase
 {
 public:
   RCLCPP_SMART_PTR_DEFINITIONS(QR2Publisher)
-  
-  QR2Publisher(rclcpp::Node::SharedPtr node, const std::string & topic, rclcpp::QoS qos)
+
+  QR2Publisher(
+    rclcpp::Node::SharedPtr node, const std::string & topic,
+    rclcpp::QoS qos, const std::string & type)
   {
+    type_ = type;
+
     node_ = node;
     publisher_ = node->create_publisher<T>(topic, qos);
   }
@@ -93,13 +98,20 @@ public:
     publisher_->publish(msg);
   }
 
-  void publish(typename T::SharedPtr msg) {
-    publisher_->publish(msg);
+  void publish(typename T::UniquePtr msg)
+  {
+    publisher_->publish(std::move(msg));
+  }
+
+  std::string get_type()
+  {
+    return type_;
   }
 
 protected:
   typename rclcpp::Publisher<T>::SharedPtr publisher_;
   long counter_ {0};
+  std::string type_;
 };
 
 class QR2PublisherFactory
@@ -142,19 +154,19 @@ public:
     std::shared_ptr<QR2PublisherBase> ret;
     if (type == "Vector3") {
       ret = std::make_shared<QR2Publisher<quantif_ros2_interfaces::msg::Vector3>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "Twist") {
       ret = std::make_shared<QR2Publisher<quantif_ros2_interfaces::msg::Twist>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "LaserScan") {
       ret = std::make_shared<QR2Publisher<quantif_ros2_interfaces::msg::LaserScan>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "Image") {
       ret = std::make_shared<QR2Publisher<quantif_ros2_interfaces::msg::Image>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else if (type == "PointCloud2") {
       ret = std::make_shared<QR2Publisher<quantif_ros2_interfaces::msg::PointCloud2>>(
-        node_, topic, qos);
+        node_, topic, qos, type);
     } else {
       RCLCPP_ERROR(
         node_->get_logger(), "Unsupported type (%s) for topic %s", type.c_str(), id.c_str());
